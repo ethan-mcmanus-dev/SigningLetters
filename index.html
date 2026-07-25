@@ -6,56 +6,30 @@
 <title>Verify</title>
 </head>
 <body>
-<p id="status">Verifying...</p>
+<p id="status">Pending</p>
 <pre id="msg"></pre>
 
 <script type="module">
 import * as openpgp from 'https://cdn.jsdelivr.net/npm/openpgp@5/+esm';
 
-// ---- messages you can edit ----
-const MSG_PENDING = "Verifying...";
+const MSG_PENDING = "Pending";
 const MSG_OK      = "Authentic - signed by Ethan McManus";
 const MSG_BAD     = "Invalid - signature does not verify";
+const MSG_NONE    = "No signed message provided in the link.";
 
 const PUBLIC_KEY = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 
-xjMEamUe5BYJKwYBBAHaRw8BAQdA9gz/+dMJ/fNsu6y7bjVsYJaTAQqjOIwp
-5ZdlMX6HTDrNDUV0aGFuIE1jTWFudXPCjAQQFgoAPgWCamUe5AQLCQcICZAx
-B794ahunHwMVCAoEFgACAQIZAQKbAwIeARYhBIspf7IXpw91qk5fPTEHv3hq
-G6cfAAD4SgD+LK0au/k6YCo/uI7hMrzdyq4GrCXQlneupfTKTkM6eNAA/0B9
-gZ98PiRKrOQRdPgTz46moh0/EY6ck9wXuacIBVsHzjgEamUe5BIKKwYBBAGX
-VQEFAQEHQAJmATjxHmai4WnsrkbqvwmURFr6rmS8CgP+Z3ro+Jg5AwEIB8J4
-BBgWCgAqBYJqZR7kCZAxB794ahunHwKbDBYhBIspf7IXpw91qk5fPTEHv3hq
-G6cfAABanQD/YUoxn8m8NHRXmnsam6TXmAyO0lUhcR26Ebf+6nHSCdQBAKd7
-FEP+nfdCZZLfgd9NHX0NQ9M0h7GdCTaoYpBkuxoB
-=deuC
+xjMEamUmzhYJKwYBBAHaRw8BAQdAnkVxL648oUOQk+jStMRvpZKJIlI7IXv1
+rGG7Dnbx05PNDUV0aGFuIE1jTWFudXPCjAQQFgoAPgWCamUmzgQLCQcICZCL
+/G1zb+8pgQMVCAoEFgACAQIZAQKbAwIeARYhBBHPO1ShgF/MLs1Ryov8bXNv
+7ymBAAA9MQD/Y7oC2sblM03bwKKGwaN7b6UnbEUYAOO1xzNpooi8k2cBAIWd
+e3/OFxHGOXS7jw9aS73ON9rcJ1Aezi6SQRL/tKwPzjgEamUmzhIKKwYBBAGX
+VQEFAQEHQEIncGdVO6g5V0cTQ8RwFn4VHRZefqFtECUCQ5RA4qxeAwEIB8J4
+BBgWCgAqBYJqZSbOCZCL/G1zb+8pgQKbDBYhBBHPO1ShgF/MLs1Ryov8bXNv
+7ymBAAD1fwD/XzBs8UhW/fNdF2mzRgRxfglE/bAhPpdrRPN6mdNeiCABAMRV
+lHcznS2coNbgJvOZ8wAhZ7i++jYXPep3romRiGsI
+=D/Go
 -----END PGP PUBLIC KEY BLOCK-----
-`;
-const SIGNED = `-----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA512
-
-Hello Professor Lushman,
-
-I am a Software Engineering student entering my 2A term, and I would like to request an override to enroll in your CS 241E course.
-
-I missed the average cutoff for admission into the enriched stream, but I think the hands-on experimentation that comes with the assignment-heavy nature of this course is how I learn best. CS 241E would be a great opportunity for me to get the most out of my coursework.
-
-In my last co-op term, I worked with Apache Spark, and reading some of the Scala code, I was completely lost. I'd never seen code without any loops. I used it, but I couldn't read any of it or understand what was going on underneath. The enriched stream would help me learn some of the thinking that distributed and data-intensive systems are built on.
-
-CS 241E currently has 32 of the 60 Software Engineering reserve seats open, and I would greatly appreciate it if I were able to occupy one of them. I will send you an email with the override form attached for your consideration.
-
-Thank you very much for your time,
-
-Ethan McManus
-e2mcmanu@uwaterloo.ca
-21179506
------BEGIN PGP SIGNATURE-----
-
-wnUEARYKACcFgmplHuQJkDEHv3hqG6cfFiEEiyl/shenD3WqTl89MQe/eGob
-px8AAJbaAP9fm2EsrNqn6UxjAFpDOWbQIcWYcb03y8b1dCGnbsBAbQEAo9Oo
-Sb7PAESunCEUqKGnu0vUHqNo9/Rz6WxT407EjQM=
-=kMly
------END PGP SIGNATURE-----
 `;
 
 const statusEl = document.getElementById('status');
@@ -63,6 +37,11 @@ const msgEl = document.getElementById('msg');
 statusEl.textContent = MSG_PENDING;
 
 try {
+  const encoded = location.hash.slice(1);
+  if (!encoded) { statusEl.textContent = MSG_NONE; throw new Error('no hash'); }
+
+  const SIGNED = decodeURIComponent(escape(atob(encoded)));
+
   const pubKey = await openpgp.readKey({ armoredKey: PUBLIC_KEY });
   const signedMsg = await openpgp.readCleartextMessage({ cleartextMessage: SIGNED });
   const result = await openpgp.verify({ message: signedMsg, verificationKeys: pubKey });
@@ -70,7 +49,7 @@ try {
   await result.signatures[0].verified;
   statusEl.textContent = MSG_OK;
 } catch (e) {
-  statusEl.textContent = MSG_BAD;
+  if (statusEl.textContent === MSG_PENDING) statusEl.textContent = MSG_BAD;
   console.error(e);
 }
 </script>
