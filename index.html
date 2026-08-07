@@ -48,7 +48,7 @@ try {
   msgEl.textContent = signedMsg.getText();
   await result.signatures[0].verified;
   statusEl.textContent = MSG_OK;
-  msgEl.textContent += "\n\nThis public key was certified by Jim Chen (PGP).";
+  msgEl.textContent += "\n\nThis public key was certified by Jim Chen (PGP). No longer, sad";
 } catch (e) {
   if (statusEl.textContent === MSG_PENDING) statusEl.textContent = MSG_BAD;
   console.error(e);
