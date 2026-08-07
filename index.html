@@ -6,52 +6,32 @@
 <title>Verify</title>
 </head>
 <body>
-<p id="status">Pending</p>
-<pre id="msg"></pre>
+<pre id="raw"></pre>
+<pre id="pubkey"></pre>
 
 <script type="module">
-import * as openpgp from 'https://cdn.jsdelivr.net/npm/openpgp@5/+esm';
-
-const MSG_PENDING = "Pending";
-const MSG_OK      = "Authentic - signed by Ethan McManus";
-const MSG_BAD     = "Invalid - signature does not verify";
-const MSG_NONE    = "No signed message provided in the link.";
-
 const PUBLIC_KEY = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 
-xjMEanWAwxYJKwYBBAHaRw8BAQdAqqxGcXotYky1wfDLHCYWqe9JZuxRndRg
-U2dSPOd9shzNDUV0aGFuIE1jTWFudXPCjAQQFgoAPgWCanWAwwQLCQcICZDC
-dZHC15lnBQMVCAoEFgACAQIZAQKbAwIeARYhBL94muy8nkXU6NMBNsJ1kcLX
-mWcFAACMVQEAxbttgELnmBGFAMelyKpM7+edhbnt3RWld/8W75zPgcMBAKc6
-S7jsRDQ6UOUOhlhhHHkTS3hWZmuhhKK9Kq1otUIHzjgEanWAwxIKKwYBBAGX
-VQEFAQEHQApJqAeuAtWy9EAW/UFJ/j1zM/dV8Ro/44sv8UUl2uwCAwEIB8J4
-BBgWCgAqBYJqdYDDCZDCdZHC15lnBQKbDBYhBL94muy8nkXU6NMBNsJ1kcLX
-mWcFAACPZwD5ATjXUjtHC35DKU0YWxdWMmZLaQJnom1HbOlhTv3UUIcA/1zy
-Cblx1Txi3448XtVzbHmYte8VzCbXDE0i8nO0u7MD
-=eEc4
+mDMEanWAwxYJKwYBBAHaRw8BAQdAqqxGcXotYky1wfDLHCYWqe9JZuxRndRgU2dS
+POd9shy0DUV0aGFuIE1jTWFudXOIjAQQFgoAPgWCanWAwwQLCQcICZDCdZHC15ln
+BQMVCAoEFgACAQIZAQKbAwIeARYhBL94muy8nkXU6NMBNsJ1kcLXmWcFAACMVQEA
+xbttgELnmBGFAMelyKpM7+edhbnt3RWld/8W75zPgcMBAKc6S7jsRDQ6UOUOhlhh
+HHkTS3hWZmuhhKK9Kq1otUIHiHUEEBYKAB0WIQRjwJn1mfe4Hq+3r4ZwIpBG1KNE
+ZgUCanYUKQAKCRBwIpBG1KNEZgB7AQC9eYoyMDJQ10pyKVbNWN8PdeOaF+mzEnkR
+bTowmP4d9AD9GQKC6je9PSpFMj3iRYi0Ttj748ZaLN9KnOs30GALOAS4OARqdYDD
+EgorBgEEAZdVAQUBAQdACkmoB64C1bL0QBb9QUn+PXMz91XxGj/jiy/xRSXa7AID
+AQgHiHgEGBYKACoFgmp1gMMJkMJ1kcLXmWcFApsMFiEEv3ia7LyeRdTo0wE2wnWR
+wteZZwUAAI9nAPkBONdSO0cLfkMpTRhbF1YyZktpAmeibUds6WFO/dRQhwD/XPIJ
+uXHVPGLfjjxe1XNseZi17xXMJtcMTSLyc7S7swM=
+=WXYl
 -----END PGP PUBLIC KEY BLOCK-----
 `;
 
-const statusEl = document.getElementById('status');
-const msgEl = document.getElementById('msg');
-statusEl.textContent = MSG_PENDING;
+document.getElementById('pubkey').textContent = PUBLIC_KEY;
 
-try {
-  const encoded = location.hash.slice(1);
-  if (!encoded) { statusEl.textContent = MSG_NONE; throw new Error('no hash'); }
-
-  const SIGNED = decodeURIComponent(escape(atob(encoded)));
-
-  const pubKey = await openpgp.readKey({ armoredKey: PUBLIC_KEY });
-  const signedMsg = await openpgp.readCleartextMessage({ cleartextMessage: SIGNED });
-  const result = await openpgp.verify({ message: signedMsg, verificationKeys: pubKey });
-  msgEl.textContent = signedMsg.getText();
-  await result.signatures[0].verified;
-  statusEl.textContent = MSG_OK;
-  msgEl.textContent += "\n\nA public key that was used here in the past was certified by Jim Chen (PGP).";
-} catch (e) {
-  if (statusEl.textContent === MSG_PENDING) statusEl.textContent = MSG_BAD;
-  console.error(e);
+const encoded = location.hash.slice(1);
+if (encoded) {
+  document.getElementById('raw').textContent = decodeURIComponent(escape(atob(encoded)));
 }
 </script>
 </body>
